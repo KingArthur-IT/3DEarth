@@ -1,0 +1,21 @@
+{
+  "name": "helicopterviewer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c \"rollup_config.js\"",
+    "test": ""
+  },
+  "author": "Artem Ostapenko",
+  "license": "ISC",
+  "dependencies": {
+    "three": "^0.132.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-terser": "^0.4.0",
+    "rollup": "^3.17.2"
+  }
+}
