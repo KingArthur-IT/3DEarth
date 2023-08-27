@@ -40,13 +40,12 @@ import {
 
 	const scene = new Scene(), 
 		planet = new Group(),
-		camera = new PerspectiveCamera( 15, aspect, 1, 5000 );
+		camera = new PerspectiveCamera(14, aspect, 1, 5000 );
 	
 	camera.position.z = posZ;
 
 	camera.updateMatrixWorld();
-
-	// planet.rotateOnWorldAxis(vec3(1, 0, 0), .75);
+	planet.rotateOnWorldAxis(vec3(1, 0, 0), .6);
 	
 	function resize(){
 		let rect = canvas.getBoundingClientRect();
@@ -110,7 +109,7 @@ import {
 
 	Ematerial.extensions = { derivatives: 1 };
 
-	var Egeometry = new IcosahedronGeometry(R, 5);
+	var Egeometry = new IcosahedronGeometry(R, 6);
 	var Earth = new Points(new BufferGeometry().setFromPoints(Egeometry.vertices), Ematerial);
 	Egeometry.uv = [];
 	Egeometry.vertices.forEach(v => {
@@ -171,29 +170,21 @@ import {
 	scene.fog = new Fog(color, posZ - R/2, posZ + R);
 	
 	// interactions
-	var dx = 0, ready, pointers = {};
+	var dx = 0, ready, pointers = { x: -1, y: -1 };
 	const damping = .1
-	const rotateStep = 0.003
+	const rotateStep = 0.001
 
-	container.addEventListener('pointerdown', e => {
-		pointers[e.pointerId] = {
-			x0 : e.clientX,
-			y0 : e.clientY
+	window.addEventListener('mousemove', e => {
+		if (!ready) return;
+		e.preventDefault();
+		if (pointers.x < 0 || pointers.y < 0) {
+			pointers.x = e.clientX;
+			pointers.y = e.clientY;
+		} else {
+			dx = Math.lerp(dx, pointers.x-(pointers.x = e.clientX), .3);
 		}
-		e.preventDefault();
-	});
-	window.addEventListener('pointermove', e => {
-		if (!ready || !pointers[e.pointerId]) return;
-		e.preventDefault();
-		let p = pointers[e.pointerId];
-		dx = Math.lerp(dx, p.x0-(p.x0 = e.clientX), .3);
 		ready = 0;
-		pointers.touch = (e.pointerType == 'touch');
 	});
-
-	window.addEventListener('pointercancel', e => delete pointers[e.pointerId]);
-	window.addEventListener('pointerup', e => delete pointers[e.pointerId]);
-	window.addEventListener('pointerdown', e => {delete pointers.touch;})
 
 	requestAnimationFrame(function animate() {
 		requestAnimationFrame(animate);
