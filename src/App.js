@@ -1,7 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
 
 var canvas, renderer, scene, camera, helicopterObj,
 sceneSize = {
@@ -27,11 +25,11 @@ settings = {
     minYRotate: -93.0 * Math.PI / 180.0,
     maxXRotate: 70.0 * Math.PI / 180.0,
     minXRotate: -70.0 * Math.PI / 180.0,
-    aspectRatio: 2,
+    aspectRatio: 1,
     camera: {
         deep: 10000,
         posY: 0,
-        posZ: 1400
+        posZ: 600
     }
 }
 
@@ -56,10 +54,10 @@ class App {
         light.position.set(0, 0, 0);
         scene.add(light);
 
-        const light2 = new THREE.PointLight(0xffffff, 1.0);
-        light2.position.set(0, 10000, 0);
-        light2.castShadow = true;
-        scene.add(light2);
+        // const light2 = new THREE.PointLight(0xffffff, 1.0);
+        // light2.position.set(0, 10000, 0);
+        // light2.castShadow = true;
+        // scene.add(light2);
 
         renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: 'high-performance', preserveDrawingBuffer: true, premultipliedAlpha: true });
         renderer.setClearColor( 0x000000, 0 );
@@ -67,44 +65,18 @@ class App {
         renderer.setSize( sceneSize.width, sceneSize.height );
 
         //obj
-        const loader = document.getElementById('canvasLoaderInfo')
+        let EarthObj = new THREE.Object3D();
+        const objLoader = new OBJLoader();
 
-        // let penObj = new THREE.Object3D();
-        // let mtlLoader = new MTLLoader();
-        // mtlLoader.setPath('./assets/');
-        
-        // mtlLoader.load('winery.mtl', function (materials) {
-        //     materials.preload();
-        //     const objLoader = new OBJLoader();
-        //     // let objLoader = new THREE.OBJLoader();
-        //     objLoader.setMaterials(materials);
-        //     // objLoader.setPath(cfg.modelsPath);
-        //     objLoader.load('./assets/winery.obj', function (object) {
-        //         const scale = 2000
-        //         object.scale.set(scale, scale, scale);
-        //         object.position.set(0, 0, 0);
-        //         // object.rotation.set(Math.PI / 2.0, 10, 0);
-        //         // penObj.add(object);
-        //         scene.add(object)
-        //     });
-        // });
-
-        helicopterObj = new THREE.Object3D();
-        let gltfLoader = new GLTFLoader();
-        gltfLoader.setPath('./assets/');
-        gltfLoader.load(
-            'winery.gltf',
-            (object) => {
-                object.name = 'helicopter';
-                // helicopterObj.add(object)
-                object.scene.scale.set(1500, 1500, 1500 );
-                scene.add(object.scene)
-            }, (xhr) => {
-                console.log(`loaded: ${Math.floor(100.0 * xhr.loaded / xhr.total)}%`);
-                if (loader)
-                    loader.innerHTML = `loaded: ${Math.floor(100.0 * xhr.loaded / xhr.total)}%`
-            },
-        )
+        // objLoader.setMaterials(materials);
+        objLoader.load('./assets/Earth.obj', function (object) {
+            const scale = 2
+            object.scale.set(scale, scale, scale);
+            object.position.set(0, 0, 0);
+            // object.rotation.set(Math.PI / 2.0, 10, 0);
+            // penObj.add(object);
+            scene.add(object)
+        });
 
         // helicopterObj.scale.set(1,1,1);
         // helicopterObj.position.set(0.5, 0, -13.7);
