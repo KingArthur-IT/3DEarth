@@ -1,5 +1,5 @@
 const d = 220
-const R = 160
+const R = 200
 const T_earth = 'map.png'
 const posZ = 1000
 const canvasId = '#earth'
@@ -32,7 +32,6 @@ import {
 		aspect = 1;
 
 	const vec3 = (x,y,z) => new Vector3(x,y,z),
-		wX = vec3(1, 0, 0), 
 		wY = vec3(0, 1, 0),
 	 	canvas = document.querySelector(canvasId), 
 		container = document.querySelector('.animation'); 
@@ -44,9 +43,10 @@ import {
 		camera = new PerspectiveCamera( 15, aspect, 1, 5000 );
 	
 	camera.position.z = posZ;
+
 	camera.updateMatrixWorld();
 
-	planet.rotateY(PI/5)
+	// planet.rotateOnWorldAxis(vec3(1, 0, 0), .75);
 	
 	function resize(){
 		let rect = canvas.getBoundingClientRect();
@@ -71,22 +71,13 @@ import {
 			tCtx = testCanvas.getContext('2d')
 		var img = t.image;
 		
-		const Ew = testCanvas.width = img.width; 
 		const Eh = testCanvas.height = img.height;
 		tCtx.scale(1, -1);
 		tCtx.drawImage(img, 0, -Eh);
-		var idata = tCtx.getImageData(0, 0, Ew, Eh);
-		
-		Egeometry.vertices.forEach((p, i) => {
-			var u = .5 - Math.atan2(-p.z, -p.x)/2/PI,
-				v = .5 + Math.asin(p.y/R)/PI,
-				color = idata.data[(Math.floor(u%1*Ew)+Math.floor(v*Eh)*Ew)*4];
-			if (!color) points0.push(p);
-		})
 	} );
 
 	var matScale = {
-		set value(val) { this.val = val*camera.zoom },
+		set value(val) { this.val = val * camera.zoom },
 		get value() { return this.val }
 	}
 
@@ -118,7 +109,8 @@ import {
 	});
 
 	Ematerial.extensions = { derivatives: 1 };
-	var Egeometry = new IcosahedronGeometry(R, 6);
+
+	var Egeometry = new IcosahedronGeometry(R, 5);
 	var Earth = new Points(new BufferGeometry().setFromPoints(Egeometry.vertices), Ematerial);
 	Egeometry.uv = [];
 	Egeometry.vertices.forEach(v => {
@@ -135,7 +127,7 @@ import {
 		blending: 5,
 		color: color,
 		onBeforeCompile: function(sh){
-			sh.uniforms.scale=matScale;
+			sh.uniforms.scale = matScale;
 			sh.vertexShader='\
 			attribute float flash;\n\
 			varying float vSize;\n\
@@ -167,7 +159,7 @@ import {
 	var pCount = 50
 
 	var flashes = new Float32Array(pCount);
-	var points32 = new Float32Array(pCount*3);
+	var points32 = new Float32Array(pCount * 3);
 	var Pgeometry = new BufferGeometry();
 	Pgeometry.addAttribute( 'position', new BufferAttribute( points32, 3 ) );
 	Pgeometry.addAttribute( 'flash', new BufferAttribute( flashes, 1 ) );
@@ -177,14 +169,13 @@ import {
 	scene.add(planet);
 
 	scene.fog = new Fog(color, posZ - R/2, posZ + R);
-	var points0 = []
 	
 	// interactions
 	var dx = 0, ready, pointers = {};
 	const damping = .1
-	const rotateStep = 0.005
+	const rotateStep = 0.003
 
-	container.addEventListener('pointerdown', e=>{
+	container.addEventListener('pointerdown', e => {
 		pointers[e.pointerId] = {
 			x0 : e.clientX,
 			y0 : e.clientY
@@ -196,7 +187,6 @@ import {
 		e.preventDefault();
 		let p = pointers[e.pointerId];
 		dx = Math.lerp(dx, p.x0-(p.x0 = e.clientX), .3);
-		// dy = Math.lerp(dy, p.y0-(p.y0 = e.clientY), .3);
 		ready = 0;
 		pointers.touch = (e.pointerType == 'touch');
 	});
