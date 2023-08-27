@@ -1,18 +1,15 @@
 const d = 220
 const R = 160
 const T_earth = 'map.png'
-const obliquity = 23/180*3.14
-const roV1 = .00025
 const posZ = 1000
 const canvasId = '#earth'
-const color = '#0084ff'
+const color = '#cccccc'
 const PI = Math.PI
 const vVPort = window.visualViewport || { scale: 1};
 
 import {
 	Math as math, 
 	Vector3,
-	Quaternion,
 	WebGLRenderer,
 	Scene,
 	Group,
@@ -35,7 +32,6 @@ import {
 		aspect = 1;
 
 	const vec3 = (x,y,z) => new Vector3(x,y,z),
-	 	quat = new Quaternion(),
 		wX = vec3(1, 0, 0), 
 		wY = vec3(0, 1, 0),
 	 	canvas = document.querySelector(canvasId), 
@@ -45,13 +41,12 @@ import {
 
 	const scene = new Scene(), 
 		planet = new Group(),
-		camera = new PerspectiveCamera( 18, aspect, 1, 10000 );
+		camera = new PerspectiveCamera( 15, aspect, 1, 5000 );
 	
 	camera.position.z = posZ;
 	camera.updateMatrixWorld();
 
-	planet.rotateY(PI/5).rotateZ(obliquity)
-	const pAxis = vec3(0, 1, 0).applyQuaternion(planet.quaternion);
+	planet.rotateY(PI/5)
 	
 	function resize(){
 		let rect = canvas.getBoundingClientRect();
@@ -66,7 +61,7 @@ import {
 			let l = camera.position.length(),
 				r = vec3(0, l * Math.tan(Math.asin(R/l)), 0).project(camera).y * H;
 			container.style.opacity = 1;
-			camera.zoom *= W/1.3/r;
+			camera.zoom *= W/1.01/r;
 			camera.updateProjectionMatrix();
 		}
 	};
@@ -83,8 +78,8 @@ import {
 		var idata = tCtx.getImageData(0, 0, Ew, Eh);
 		
 		Egeometry.vertices.forEach((p, i) => {
-			var u = .5-Math.atan2(-p.z, -p.x)/2/PI,
-				v = .5+Math.asin(p.y/R)/PI,
+			var u = .5 - Math.atan2(-p.z, -p.x)/2/PI,
+				v = .5 + Math.asin(p.y/R)/PI,
 				color = idata.data[(Math.floor(u%1*Ew)+Math.floor(v*Eh)*Ew)*4];
 			if (!color) points0.push(p);
 		})
@@ -126,49 +121,48 @@ import {
 	var Egeometry = new IcosahedronGeometry(R, 6);
 	var Earth = new Points(new BufferGeometry().setFromPoints(Egeometry.vertices), Ematerial);
 	Egeometry.uv = [];
-	Egeometry.vertices.forEach(v=>{
+	Egeometry.vertices.forEach(v => {
 		Egeometry.uv.push(.5-Math.atan2(-v.z, -v.x)/2/PI);
 		Egeometry.uv.push(.5+Math.asin(v.y/R)/PI)
 	})
 	Earth.geometry.addAttribute('uv', new Float32BufferAttribute(Egeometry.uv, 2));
 
 	var Pmaterial = new PointsMaterial({
-		size: d*1.2,
+		size: d * 1.2,
 		transparent: true,
 		alphaTest: 0.004,
 		depthTest: false,
 		blending: 5,
-		//opacity: .85,
-		color: color,//.multiplyScalar(2),
+		color: color,
 		onBeforeCompile: function(sh){
 			sh.uniforms.scale=matScale;
 			sh.vertexShader='\
-attribute float flash;\n\
-varying float vSize;\n\
-'			+sh.vertexShader.replace(/}\s*$/, '\
-  vSize=max(flash, 0.0);\n\
-  gl_PointSize*=vSize;\n\
-}			');
-			sh.fragmentShader='\
-varying float vSize;\n\
-'			+sh.fragmentShader.replace("#include <map_particle_fragment>", `
-	vec2 cxy = 2.0 * gl_PointCoord - 1.0;
-  float r = length(cxy), delta = fwidth(r), size=1.-vSize;
-	size=1.-size*size;
-	#ifdef T_POINT
-	 diffuseColor.a =1.0 - smoothstep(1. - delta, 1. + delta, r);
-	 //diffuseColor.a = (1.+delta -r)/delta;
-	#else
-	 //float r=sqrt(r2);
-	 diffuseColor.rgb =mix(vec3(1.1), diffuse, min(r*2.3, 1.));
-	 diffuseColor.a=cos(min(r*r,1.)*PI)*.5+.5;
-	#endif
- diffuseColor.a *= smoothstep( ${(R*.2).toFixed(1)},  ${(-R*.4).toFixed(1)}, fogDepth-${(posZ).toFixed(1)} )*size;
+			attribute float flash;\n\
+			varying float vSize;\n\
+			'			+sh.vertexShader.replace(/}\s*$/, '\
+			vSize=max(flash, 0.0);\n\
+			gl_PointSize*=vSize;\n\
+			}			');
+						sh.fragmentShader='\
+			varying float vSize;\n\
+			'			+sh.fragmentShader.replace("#include <map_particle_fragment>", `
+				vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+			float r = length(cxy), delta = fwidth(r), size=1.-vSize;
+				size=1.-size*size;
+				#ifdef T_POINT
+				diffuseColor.a =1.0 - smoothstep(1. - delta, 1. + delta, r);
+				//diffuseColor.a = (1.+delta -r)/delta;
+				#else
+				//float r=sqrt(r2);
+				diffuseColor.rgb =mix(vec3(1.1), diffuse, min(r*2.3, 1.));
+				diffuseColor.a=cos(min(r*r,1.)*PI)*.5+.5;
+				#endif
+			diffuseColor.a *= smoothstep( ${(R*.2).toFixed(1)},  ${(-R*.4).toFixed(1)}, fogDepth-${(posZ).toFixed(1)} )*size;
       `);
-			// console.log(sh, sh.vertexShader, sh.fragmentShader);
+
 		}
 	});
-	Pmaterial.extensions = {derivatives: 1};
+	Pmaterial.extensions = { derivatives: 1 };
 
 	var pCount = 50
 
@@ -181,38 +175,30 @@ varying float vSize;\n\
 	var Flashes = new Points(Pgeometry, Pmaterial);
 	planet.add(Flashes, Earth)
 	scene.add(planet);
-	planet.position.z=-R
 
-	scene.fog=new Fog(color, posZ-R/2, posZ+R);
-	var t0=performance.now(), dMax=1000/15,
-		points0=[],
-		pUp=0,
-		Tmaterial=Pmaterial.clone();
-	Tmaterial.__proto__=Pmaterial;
-	Tmaterial.defines={T_POINT: 1};
-	Tmaterial.blending=2;
-	Tmaterial.size=.047*d; Tmaterial.opacity=.75;
-	Tmaterial.color.multiplyScalar(.8);
+	scene.fog = new Fog(color, posZ - R/2, posZ + R);
+	var points0 = []
 	
 	// interactions
-	var dx = 0, dy = 0, ready, pointers={};
+	var dx = 0, ready, pointers = {};
+	const damping = .1
+	const rotateStep = 0.005
 
 	container.addEventListener('pointerdown', e=>{
-		pointers[e.pointerId]={
+		pointers[e.pointerId] = {
 			x0 : e.clientX,
 			y0 : e.clientY
 		}
 		e.preventDefault();
 	});
-	window.addEventListener('pointermove', e=>{
+	window.addEventListener('pointermove', e => {
 		if (!ready || !pointers[e.pointerId]) return;
 		e.preventDefault();
-		let p=pointers[e.pointerId];
+		let p = pointers[e.pointerId];
 		dx = Math.lerp(dx, p.x0-(p.x0 = e.clientX), .3);
 		// dy = Math.lerp(dy, p.y0-(p.y0 = e.clientY), .3);
-		//console.log(e.type, active.identifier, dx, x0)
 		ready = 0;
-		pointers.touch=(e.pointerType=='touch');
+		pointers.touch = (e.pointerType == 'touch');
 	});
 
 	window.addEventListener('pointercancel', e => delete pointers[e.pointerId]);
@@ -223,24 +209,11 @@ varying float vSize;\n\
 		requestAnimationFrame(animate);
 		resize();
 
-		var t = performance.now(), 
-			dt = t - t0;
 		if (!Emap.image) return;
-		dt = Math.min(dt, dMax);
-		t0 = t;
-		planet.position.z -= planet.position.z * .08;
-		planet.rotateOnWorldAxis(pAxis, roV1*dt);
+		planet.position.z -= planet.position.z;
 
-		var ax = vec3(0,1,0).applyQuaternion(planet.quaternion);
-		dx *= 1-.0015*dt;
-		dy *= 1-.0015*dt;
-		if (pointers.touch) document.scrollingElement.scrollTop += Math.round(dy*.3);
-		planet.rotateOnWorldAxis(wX, -dy*.005);
-		planet.rotateOnWorldAxis(wY, -dx*.005);
-		var aCorr=Math.sqrt(1-ax.angleTo(pAxis)/3.15);
-		planet.applyQuaternion(quat.clone().setFromUnitVectors(ax, pAxis).slerp(quat, 1-.0008*dt*aCorr));
-
-		pUp=0;
+		dx = Math.abs(dx) < damping ? 0 : dx - Math.sign(dx) * damping
+		planet.rotateOnWorldAxis(wY, -dx * rotateStep);
 		
 		Pgeometry.attributes.flash.needsUpdate = true;
 		renderer.render( scene, camera);
