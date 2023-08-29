@@ -13,12 +13,16 @@
             background: #fff;
         }
         #canvasWrapper{
-            width: 500px;
-            height: 500px;
+            width: 700px;
+            height: 700px;
             background-color: #242424;
         }
-        #main3DCanvas{
-            border: 1px solid #000;
+
+        @media screen and (max-width: 700px) {
+            #canvasWrapper{
+                width: 100vw;
+                height: 100vw;
+            }
         }
     </style>
 </head>
