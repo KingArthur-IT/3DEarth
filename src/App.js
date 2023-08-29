@@ -59,9 +59,9 @@ class App {
         // light2.castShadow = true;
         // scene.add(light2);
 
-        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: 'high-performance', preserveDrawingBuffer: true, premultipliedAlpha: true });
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
         renderer.setClearColor( 0x000000, 0 );
-        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setPixelRatio( Math.min(window.devicePixelRatio, 1.5) );
         renderer.setSize( sceneSize.width, sceneSize.height );
 
         //obj
@@ -73,16 +73,10 @@ class App {
             const scale = 2
             object.scale.set(scale, scale, scale);
             object.position.set(0, 0, 0);
-            // object.rotation.set(Math.PI / 2.0, 10, 0);
-            // penObj.add(object);
-            scene.add(object)
+            object.rotation.set(0, 0.4, 3.5);
+            EarthObj.add(object)
         });
-
-        // helicopterObj.scale.set(1,1,1);
-        // helicopterObj.position.set(0.5, 0, -13.7);
-        // helicopterObj.rotation.x = -90.0 * Math.PI / 180.0;
-        // helicopterObj.rotation.z = 50.0 * Math.PI / 180.0;
-        // scene.add(helicopterObj);
+        scene.add(EarthObj)
 
         canvas.addEventListener('mousemove', mouseMoveHandler)
         canvas.addEventListener('mousedown', mouseDownHandler)
