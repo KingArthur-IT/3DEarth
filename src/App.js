@@ -87,7 +87,13 @@ class App {
             });
 
             EarthObj.add(object)
-        });
+        }, (xhr) => {
+            const loadedVal = `loaded: ${Math.floor(100.0 * xhr.loaded / xhr.total)}%`;
+            console.log(loadedVal);
+            document.querySelector('.loader').innerHTML = loadedVal;
+        }
+        
+        );
         scene.add(EarthObj)
 
         window.addEventListener('resize', onCanvasResize)
