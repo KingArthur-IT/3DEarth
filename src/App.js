@@ -13,13 +13,13 @@ var deltaX = 0,
     },
     settings = {
         moveStep: {
-            x: 0.3,
+            x: 0.1,
         },
-        aspectRatio: 1,
+        aspectRatio: 1.5,
         camera: {
             deep: 10000,
-            posY: 0,
-            posZ: 600
+            posY: 20,
+            posZ: 425
         }
     }
 
@@ -40,7 +40,7 @@ class App {
         scene.add(camera)
 
         //lights
-        const light = new THREE.AmbientLight(0xffffff, 0.75);
+        const light = new THREE.AmbientLight(0xffffff, 1.0);
         light.position.set(0, 0, 0);
         scene.add(light);
 
@@ -70,12 +70,12 @@ class App {
             const scale = 2.2
             object.scale.set(scale, scale, scale);
             object.position.set(0, 0, 0);
-            object.rotation.set(0, 0.6, 3.5);
+            object.rotation.set(0.3, 0.6, 3.5);
 
             object.traverse( function ( child ) {
                 if ( child instanceof THREE.Mesh ) {
                     console.log(child);
-                    // child.material.side = THREE.DoubleSide;    
+                    child.material.side = THREE.FrontSide;    
                     
                     if (child.name === 'Mark') {
                         child.material = redMaterial  
